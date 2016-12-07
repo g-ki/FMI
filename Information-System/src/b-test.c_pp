@@ -1,0 +1,101 @@
+#include <iostream>
+#include <string>
+#include "b-tree.h"
+using namespace std;
+
+class Student {
+public:
+  string name;
+  int age;
+public:
+  Student() {}
+  Student (string _name, int _age) : name(_name), age(_age) {}
+
+};
+
+ostream& operator<<(ostream& os, const Student& s)
+{
+  return os << s.name << " : " << s.age;
+}
+
+int main(int argc, char const *argv[]) {
+
+  BTree<string, Student> map(3);
+
+  Student a("Alex", 12), b("Bob", 33);
+
+  map.insert(a.name, a);
+  map.insert(b.name, b);
+  map.insert(a.name, a);
+
+  map.traverse();
+
+  return 0;
+
+  BTree<int, string> t(3); // A B-Tree with minium degree 3
+
+  t.insert(1 , "_1");
+  t.insert(3, "_3");
+  t.insert(7, "_7");
+  t.insert(10, "_10");
+  t.insert(11, "_11");
+  t.insert(13, "_13");
+  t.insert(14, "_14");
+  t.insert(15, "_15");
+  t.insert(18, "_18");
+  t.insert(16, "_16");
+  t.insert(19, "_19");
+  t.insert(24, "_24");
+  t.insert(25, "_25");
+  t.insert(26, "_26");
+  t.insert(21, "_21");
+  t.insert(4, "_4");
+  t.insert(5, "_5");
+  t.insert(20, "_20");
+  t.insert(22, "_22");
+  t.insert(2, "_2");
+  t.insert(17, "_17");
+  t.insert(12, "_12");
+  t.insert(6, "_6");
+
+
+  string& s = *t.search(3);
+  s = "33333333";
+  cout << s << endl << endl;
+
+  cout << "Traversal of tree constructed is\n";
+  t.traverse();
+  cout << endl;
+
+   t.remove(6);
+  cout << "Traversal of tree after removing 6\n";
+  t.traverse();
+  cout << endl;
+
+  t.remove(13);
+  cout << "Traversal of tree after removing 13\n";
+  t.traverse();
+  cout << endl;
+
+  t.remove(7);
+  cout << "Traversal of tree after removing 7\n";
+  t.traverse();
+  cout << endl;
+
+  t.remove(4);
+  cout << "Traversal of tree after removing 4\n";
+  t.traverse();
+  cout << endl;
+
+  t.remove(2);
+  cout << "Traversal of tree after removing 2\n";
+  t.traverse();
+  cout << endl;
+
+  t.remove(16);
+  cout << "Traversal of tree after removing 16\n";
+  t.traverse();
+  cout << endl;
+
+  return 0;
+}
