@@ -1,10 +1,12 @@
 #include <ctime>
 #include <iostream>
+#include <fstream>
 #include <map>
 #include <vector>
 #include <gmpxx.h>
 #include <gmp.h>
 #include <pthread.h>
+#include "cxxopts.hpp"
 
 using namespace std;
 
@@ -14,11 +16,11 @@ std::map<const unsigned, mpz_class> fact_mem;
 unsigned biggest_fact = 1;
 
 mpz_class fact_r(const unsigned &n) {
-  if (biggest_fact < n) biggest_fact = n;
   if (n < 1) return 1;
 
   if (fact_mem.find(n) == fact_mem.end()) {
     pthread_mutex_lock( &fact_mem_mutex );
+      if (biggest_fact < n) biggest_fact = n;
       fact_mem[n] = n * fact_r(n - 1);
     pthread_mutex_unlock( &fact_mem_mutex );
   }
@@ -66,16 +68,20 @@ struct thread_data {
   mpf_class result;
 };
 
+void sum_from_thread_data(struct thread_data *data) {
+  data->result = 0;
+  for (int i=0; i < data->terms.size(); ++i)
+    data->result += sum_term(data->terms[i], data->result.get_prec());
+}
+
 void *thread_sum(void *threadarg) {
-  struct thread_data *my_data;
-  my_data = (struct thread_data *) threadarg;
+  struct thread_data *data;
+  data = (struct thread_data *) threadarg;
 
-  cout << "Thread ID : " << my_data->thread_id << endl;
-  my_data->result = 0;
-  for (int i=0; i < my_data->terms.size(); ++i)
-    my_data->result += sum_term(my_data->terms[i], my_data->result.get_prec());
+  cout << "Thread ID : " << data->thread_id << endl;
+  sum_from_thread_data(data); // work is done here
+  cout << "Thread ID : " << data->thread_id  << " close \n";
 
-  cout << "Thread ID : " << my_data->thread_id  << " close \n";
   pthread_exit(NULL);
 }
 
@@ -137,20 +143,35 @@ mpf_class pi_from_threads_data(const thread_data* const td, const int num_thread
 }
 // threading ******
 
-int main(int argc, char const *argv[]) {
-  const int prec = 10000;
-  const int num_threads = 6;
+#define MAX_THREADS 248
+
+int main(int argc, char **argv) {
+
+  cxxopts::Options options("Chudnovsky PI", "Pi computed by Chudnovsky Algorithm using many threads");
+
+  options.add_options()
+    ("p,precision", "Number of interations", cxxopts::value<int>()->default_value("64"))
+    ("t,tasks", "Number of threads", cxxopts::value<int>()->default_value("1"))
+    ("o,output", "Output file", cxxopts::value<string>()->default_value("pi.txt"))
+    ("q,quite", "Quite mode")
+  ;
+  options.parse(argc, argv);
+
+  const int prec = options["precision"].as<int>();
+  const int num_threads = options["tasks"].as<int>();
+  const string output_file = options["output"].as<string>();
+  const bool quite_mode = options["quite"].as<bool>();
 
   pthread_t threads[num_threads];
-  struct thread_data td[num_threads];
+  struct thread_data td[MAX_THREADS];
 
-  pthread_mutexattr_t Attr;
+  // Set mutex recursive
+  pthread_mutexattr_t fact_mem_mutex_attr;
+  pthread_mutexattr_init(&fact_mem_mutex_attr);
+  pthread_mutexattr_settype(&fact_mem_mutex_attr, PTHREAD_MUTEX_RECURSIVE);
+  pthread_mutex_init(&fact_mem_mutex, &fact_mem_mutex_attr);
 
-  pthread_mutexattr_init(&Attr);
-  pthread_mutexattr_settype(&Attr, PTHREAD_MUTEX_RECURSIVE);
-  pthread_mutex_init(&fact_mem_mutex, &Attr);
-
-  // Initialize and set thread joinable
+  // Set thread joinable
   pthread_attr_t joinable_attr;
   pthread_attr_init(&joinable_attr);
   pthread_attr_setdetachstate(&joinable_attr, PTHREAD_CREATE_JOINABLE);
@@ -162,23 +183,35 @@ int main(int argc, char const *argv[]) {
 
   // fact(prec*6);
   setup_threads_data(td, num_threads, prec);
-  start_threads(threads, td, num_threads, &joinable_attr);
+  start_threads(threads, td, num_threads - 1, &joinable_attr);
 
   // free attribute and wait for the other threads
   pthread_attr_destroy(&joinable_attr);
-  join_threads(threads, num_threads);
 
-  std::cout << "All finished" << endl;
+  // start main thread
+  sum_from_thread_data(&td[num_threads - 1]);
+  join_threads(threads, num_threads - 1);
 
+  pthread_mutexattr_destroy(&fact_mem_mutex_attr);
+
+  // final result
   mpf_class pi = pi_from_threads_data(td, num_threads);
   // stop clock
   duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
 
-  std::cout.precision(prec);
-  cout << pi << endl;
+  ofstream pi_file(output_file, ios::out);
+  if (pi_file.is_open()) {
+    pi_file.precision(prec);
+    pi_file << pi;
+    pi_file.close();
+  }
 
-  // std::cout<<"Time: "<< duration <<'\n';
-  // std::cout<<"Time: "<< duration / 4<<'\n';
+  if (!quite_mode) {
+    std::cout.precision(prec);
+    cout << pi << endl;
+  }
+
+  std::cout<<"Took: "<< duration <<'\n';
 
 
   pthread_exit(NULL);
