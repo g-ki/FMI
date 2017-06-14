@@ -10,30 +10,24 @@
 
 using namespace std;
 
+#define MAX_THREADS 248
+
 // factorial
 pthread_mutex_t fact_mem_mutex = PTHREAD_MUTEX_INITIALIZER;
 std::map<const unsigned, mpz_class> fact_mem;
 unsigned biggest_fact = 1;
 
-mpz_class fact_r(const unsigned &n) {
-  if (n < 1) return 1;
-
-  if (fact_mem.find(n) == fact_mem.end()) {
-    pthread_mutex_lock( &fact_mem_mutex );
-      if (biggest_fact < n) biggest_fact = n;
-      fact_mem[n] = n * fact_r(n - 1);
-    pthread_mutex_unlock( &fact_mem_mutex );
-  }
-
-  return fact_mem[n];
-}
-
 mpz_class fact(const unsigned &n) {
   if (n < 1) return 1;
 
-  if (fact_mem.find(n) == fact_mem.end())
-    for(unsigned i = biggest_fact; i <= n; ++i)
-      fact_r(i);
+  if (biggest_fact < n) {
+    pthread_mutex_lock( &fact_mem_mutex );
+      for(unsigned i = biggest_fact; i < n; ++i)
+        fact_mem[i + 1] = (i + 1) * fact_mem[i];
+      if (biggest_fact < n)
+        biggest_fact = n;
+    pthread_mutex_unlock( &fact_mem_mutex );
+  }
 
   return fact_mem[n];
 }
@@ -90,7 +84,7 @@ void setup_threads_data(thread_data* td, const int num_threads, int precision) {
     td[i].thread_id = i;
     td[i].result.set_prec(precision);
 
-    // give to each thread part of sum terms
+    // give to each thread part of the sum terms
     for (int j=0; j < precision; ++j)
       if (j % num_threads == i)
         td[i].terms.push_back(j);
@@ -143,12 +137,10 @@ mpf_class pi_from_threads_data(const thread_data* const td, const int num_thread
 }
 // threading ******
 
-#define MAX_THREADS 248
-
 int main(int argc, char **argv) {
+  fact_mem[1] = 1; // set factorial bottom
 
   cxxopts::Options options("Chudnovsky PI", "Pi computed by Chudnovsky Algorithm using many threads");
-
   options.add_options()
     ("p,precision", "Number of interations", cxxopts::value<int>()->default_value("64"))
     ("t,tasks", "Number of threads", cxxopts::value<int>()->default_value("1"))
@@ -164,12 +156,6 @@ int main(int argc, char **argv) {
 
   pthread_t threads[num_threads];
   struct thread_data td[MAX_THREADS];
-
-  // Set mutex recursive
-  pthread_mutexattr_t fact_mem_mutex_attr;
-  pthread_mutexattr_init(&fact_mem_mutex_attr);
-  pthread_mutexattr_settype(&fact_mem_mutex_attr, PTHREAD_MUTEX_RECURSIVE);
-  pthread_mutex_init(&fact_mem_mutex, &fact_mem_mutex_attr);
 
   // Set thread joinable
   pthread_attr_t joinable_attr;
@@ -189,10 +175,8 @@ int main(int argc, char **argv) {
   pthread_attr_destroy(&joinable_attr);
 
   // start main thread
-  sum_from_thread_data(&td[num_threads - 1]);
-  join_threads(threads, num_threads - 1);
-
-  pthread_mutexattr_destroy(&fact_mem_mutex_attr);
+  sum_from_thread_data(&td[num_threads - 1]); // last thread is the main thread
+  join_threads(threads, num_threads - 1); // join all but last
 
   // final result
   mpf_class pi = pi_from_threads_data(td, num_threads);
