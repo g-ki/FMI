@@ -16,13 +16,14 @@ using namespace std;
 pthread_mutex_t fact_mem_mutex = PTHREAD_MUTEX_INITIALIZER;
 std::map<const unsigned, mpz_class> fact_mem;
 unsigned biggest_fact = 0;
+unsigned prec = 64;
 
 mpz_class fact(const unsigned &n) {
   if (biggest_fact < n) {
     pthread_mutex_lock( &fact_mem_mutex );
       for(unsigned i = biggest_fact; i < n; ++i) {
         fact_mem[i + 1] = (i + 1) * fact_mem[i];
-        if (i > 1000 && i % 3 != 0)
+        if (i > prec && i % 3 != 0)
           fact_mem.erase(i);
       }
       if (biggest_fact < n)
@@ -150,7 +151,7 @@ int main(int argc, char **argv) {
   ;
   options.parse(argc, argv);
 
-  const int prec = options["precision"].as<int>();
+  prec = options["precision"].as<int>();
   const int num_threads = options["tasks"].as<int>();
   const string output_file = options["output"].as<string>();
   const bool quite_mode = options["quite"].as<bool>();
