@@ -3,6 +3,7 @@
 #include <fstream>
 #include <map>
 #include <vector>
+#include <chrono>
 #include <gmpxx.h>
 #include <gmp.h>
 #include <pthread.h>
@@ -11,6 +12,8 @@
 using namespace std;
 
 #define MAX_THREADS 248
+typedef std::chrono::milliseconds ms;
+bool quite_mode = false;
 
 // factorial
 pthread_mutex_t fact_mem_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -64,7 +67,7 @@ struct thread_data {
   mpf_class result;
 };
 
-void sum_from_thread_data(struct thread_data *data) {
+inline void sum_from_thread_data(struct thread_data *data) {
   data->result = 0;
   for (int i=0; i < data->terms.size(); ++i)
     data->result += sum_term(data->terms[i], data->result.get_prec());
@@ -74,9 +77,18 @@ void *thread_sum(void *threadarg) {
   struct thread_data *data;
   data = (struct thread_data *) threadarg;
 
-  cout << "Thread ID : " << data->thread_id << endl;
+  if (!quite_mode)
+    cout << "Thread-" << data->thread_id << " started." << endl;
+  auto start = std::chrono::steady_clock::now();
+
   sum_from_thread_data(data); // work is done here
-  cout << "Thread ID : " << data->thread_id  << " close \n";
+
+  if (!quite_mode) {
+    auto end = std::chrono::steady_clock::now();
+    chrono::duration<double> diff = end - start;
+    ms d = std::chrono::duration_cast<ms>(diff);
+    cout << "Thread-" << data->thread_id << " stopped. (" << d.count() << "ms)" << endl;
+  }
 
   pthread_exit(NULL);
 }
@@ -97,12 +109,10 @@ void start_threads(pthread_t* const threads, thread_data* const td, const int nu
   int rc;
 
   for(int i = 0; i < num_threads; ++i ) {
-    cout <<"Creating thread, " << i << endl;
-
     rc = pthread_create(&threads[i], joinable_attr, thread_sum, (void *)&td[i]);
 
     if (rc){
-       cout << "Error: unable to create thread," << rc << endl;
+       cerr << "Error: unable to create thread," << rc << endl;
        exit(-1);
     }
   }
@@ -116,12 +126,9 @@ void join_threads(pthread_t* const threads, const int num_threads) {
     rc = pthread_join(threads[i], &status);
 
     if (rc){
-       cout << "Error: unable to join," << rc << endl;
+       cerr << "Error: unable to join," << rc << endl;
        exit(-1);
     }
-
-    cout << "Main: completed thread id :" << i ;
-    cout << "  exiting with status :" << status << endl;
   }
 }
 
@@ -154,7 +161,10 @@ int main(int argc, char **argv) {
   prec = options["precision"].as<int>();
   const int num_threads = options["tasks"].as<int>();
   const string output_file = options["output"].as<string>();
-  const bool quite_mode = options["quite"].as<bool>();
+  quite_mode = options["quite"].as<bool>();
+
+  if (!quite_mode)
+    cout << "Threads used in current run: " << num_threads << endl;
 
   pthread_t threads[num_threads];
   struct thread_data td[MAX_THREADS];
@@ -164,10 +174,8 @@ int main(int argc, char **argv) {
   pthread_attr_init(&joinable_attr);
   pthread_attr_setdetachstate(&joinable_attr, PTHREAD_CREATE_JOINABLE);
 
-  std::clock_t start;
-  double duration;
   // start clock
-  start = std::clock();
+  auto start = std::chrono::steady_clock::now();
 
   // fact(prec*6);
   setup_threads_data(td, num_threads, prec);
@@ -177,13 +185,19 @@ int main(int argc, char **argv) {
   pthread_attr_destroy(&joinable_attr);
 
   // start main thread
+  if (!quite_mode)
+    cout << "Main::Thread started." << endl;
   sum_from_thread_data(&td[num_threads - 1]); // last thread is the main thread
+  if (!quite_mode)
+    cout << "Main::Thread stopped." << endl;
   join_threads(threads, num_threads - 1); // join all but last
 
   // final result
   mpf_class pi = pi_from_threads_data(td, num_threads);
   // stop clock
-  duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+  typedef std::chrono::milliseconds ms;
+  auto end = std::chrono::steady_clock::now();
+  chrono::duration<double> diff = end - start;
 
   ofstream pi_file(output_file, ios::out);
   if (pi_file.is_open()) {
@@ -197,8 +211,8 @@ int main(int argc, char **argv) {
     cout << pi << endl;
   }
 
-  std::cout<<"Took: "<< duration <<'\n';
-
+  ms d = std::chrono::duration_cast<ms>(diff);
+  std::cout<<"Total execution time: "<< d.count() << "ms" << endl;
 
   pthread_exit(NULL);
   return 0;
