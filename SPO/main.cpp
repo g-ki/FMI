@@ -15,15 +15,16 @@ using namespace std;
 // factorial
 pthread_mutex_t fact_mem_mutex = PTHREAD_MUTEX_INITIALIZER;
 std::map<const unsigned, mpz_class> fact_mem;
-unsigned biggest_fact = 1;
+unsigned biggest_fact = 0;
 
 mpz_class fact(const unsigned &n) {
-  if (n < 1) return 1;
-
   if (biggest_fact < n) {
     pthread_mutex_lock( &fact_mem_mutex );
-      for(unsigned i = biggest_fact; i < n; ++i)
+      for(unsigned i = biggest_fact; i < n; ++i) {
         fact_mem[i + 1] = (i + 1) * fact_mem[i];
+        if (i > 1000 && i % 3 != 0)
+          fact_mem.erase(i);
+      }
       if (biggest_fact < n)
         biggest_fact = n;
     pthread_mutex_unlock( &fact_mem_mutex );
@@ -138,7 +139,7 @@ mpf_class pi_from_threads_data(const thread_data* const td, const int num_thread
 // threading ******
 
 int main(int argc, char **argv) {
-  fact_mem[1] = 1; // set factorial bottom
+  fact_mem[0] = 1; // set factorial bottom
 
   cxxopts::Options options("Chudnovsky PI", "Pi computed by Chudnovsky Algorithm using many threads");
   options.add_options()
