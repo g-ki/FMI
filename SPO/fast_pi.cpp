@@ -59,7 +59,7 @@ bs_pi bs_chudnovsky(const mpz_class& a, const mpz_class& b) {
 struct thread_data {
   int thread_id;
   mpz_class a, b;
-  bs_pi result;
+  mpf_class result;
 };
 
 void *worker(void *threadarg) {
@@ -69,10 +69,11 @@ void *worker(void *threadarg) {
   if (!quite_mode)
     cout << "Thread-" << data->thread_id << " started." << endl;
 
-  cout << "[" << data->a << ", " << data->b << "]" << endl;
   auto start = std::chrono::steady_clock::now();
 
-  data->result = bs_chudnovsky(data->a, data->b); // work is done here
+  bs_pi r = bs_chudnovsky(data->a, data->b); // work is done here
+
+  data->result = mpf_class(r.T, prec) / mpf_class(r.Q, prec);
 
   // if (!quite_mode) {
     auto end = std::chrono::steady_clock::now();
@@ -90,6 +91,7 @@ void setup_threads_data(thread_data* td, const int num_threads, int N) {
     td[i].thread_id = i;
     td[i].a = i*size;
     td[i].b = i*size + size;
+    td[i].result.set_prec(prec);
   }
 }
 
@@ -122,33 +124,23 @@ void join_threads(pthread_t* const threads, const int num_threads) {
 
 mpf_class pi_from_threads_data(const thread_data* const td, const int num_threads) {
   bs_pi ab, r;
-  ab = td[0].result;
-  for(int i = 1; i < num_threads; ++i ) {
-    combine(ab, td[i].result, r);
-    ab = r;
+  // ab = td[0].result;
+  mpf_class s(0, prec);
+  for(int i = 0; i < num_threads; ++i ) {
+    // combine(ab, td[i].result, r);
+    // ab = r;
+    s += td[i].result;
   }
-  cerr << "finish" << endl;
 
   mpf_class f_sqrt;
   f_sqrt.set_prec(prec);
   mpf_sqrt_ui(f_sqrt.get_mpf_t(), 10005);
 
-  mpf_class pi = (ab.Q * 426880 * f_sqrt) / ab.T;
+  mpf_class pi = (426880 * f_sqrt) / s;
   return pi;
 }
 
 int main(int argc, char **argv) {
-
-  // bs_pi ab = bs_chudnovsky(0, 100);
-  // mpf_class f_sqrt;
-  // f_sqrt.set_prec(1000);
-  // mpf_sqrt_ui(f_sqrt.get_mpf_t(), 10005);
-  //
-  // mpf_class my_pi = (ab.Q * 426880 * f_sqrt) / ab.T;
-  //
-  // cout.precision(1000000);
-  // cout << my_pi << endl;
-  // return 0;
 
   cxxopts::Options options("Chudnovsky PI", "Pi computed by Chudnovsky Algorithm using many threads");
   options.add_options()
