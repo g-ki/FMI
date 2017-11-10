@@ -2,14 +2,19 @@ import random
 
 class QueenBoard():
   def __init__(self, queens):
-    self.queens_ = tuple(queens)
+    self.queens_ = queens
     self.score_ = None
+    self.conflicts_ = {}
 
 
   def is_queen_on(self, row, col):
     return self.queens_[col] == row
 
   def conflicts(self, row, col):
+    row_col = "%d_%d" % (row, col)
+    if row_col in self.conflicts_:
+      return self.conflicts_[row_col]
+
     count = 0
 
     # conflicts on row
@@ -33,12 +38,12 @@ class QueenBoard():
 
     count += d1_conflicts.count(True) + d2_conflicts.count(True)
 
-
+    self.conflicts_[row_col] = count
     return count
 
   def score(self):
     if self.score_ is None:
-      conflicts = map(lambda q: self.conflicts(q[1], q[0]), enumerate(self.queens_))
+      conflicts = [self.conflicts(r, c) for c, r in enumerate(self.queens_)]
       self.score_ = sum(conflicts)
 
     return self.score_
@@ -57,18 +62,22 @@ class QueenBoard():
 
     return board
 
+def rand_element(arr, value):
+  return random.choice([i for i,val in enumerate(arr) if val == value])
 
 def max_queen(board):
-  conflicts = map(lambda q: (q[0], board.conflicts(q[1], q[0])), enumerate(board.queens_))
-  return max(conflicts, key=lambda q: q[1])[0]
+  conflicts = [board.conflicts(r, c) for c, r in enumerate(board.queens_)]
+  queen = rand_element(conflicts, max(conflicts))
+
+  return queen
+
 
 def min_state(board, queen):
-  queen_states = map(
-    lambda state: (state, board.conflicts(state, queen)),
-    range(len(board.queens_))
-  )
+  queen_states = [board.conflicts(r, queen) for r in range(len(board.queens_))]
+  state = rand_element(queen_states, min(queen_states))
 
-  return min(queen_states, key=lambda q: q[1])[0]
+  return state
+
 
 def move_queen_on(board, queen, position):
   next_board = list(board.queens_)
@@ -77,7 +86,14 @@ def move_queen_on(board, queen, position):
   return QueenBoard(next_board)
 
 
-def move_random_queen(board):
+def max_queen_on_min_state(board):
+  m_queen = max_queen(board)
+  m_queen_min_state = min_state(board, m_queen)
+
+  return move_queen_on(board, m_queen, m_queen_min_state)
+
+
+def rand_queen_on_rand_state(board):
   rand_queen = random.choice(range(0, len(board.queens_)))
   rand_state = random.choice(range(0, len(board.queens_)))
 
@@ -89,14 +105,11 @@ def min_conflicts(start):
   ite = 0
   while last_score > 0:
     ite +=1
-    m_queen = max_queen(current)
+    current = max_queen_on_min_state(current)
 
-    m_queen_min_state = min_state(current, m_queen)
-
-    current = move_queen_on(current, m_queen, m_queen_min_state)
-
+    print(current.score())
     if last_score <= current.score():
-      current = move_random_queen(current)
+      current = rand_queen_on_rand_state(current)
 
     last_score = current.score()
 
@@ -104,8 +117,9 @@ def min_conflicts(start):
   return current
 
 
-def rand_board(size):
-  board = list(range(0, size))
+def init_board(size):
+  # board = list(range(0, size))
+  board = [random.choice(range(size)) for i in range(size)]
   return QueenBoard(board)
 
 
@@ -113,9 +127,10 @@ if __name__ == '__main__':
     # size = int(input())
 
     # start_board = QueenBoard([1,2,0,3,4,5,6,7])
-    start_board = rand_board(10)
+    start_board = init_board(1000)
     print(str(start_board))
 
     solution = min_conflicts(start_board)
 
     print(str(solution))
+    print(solution.queens_)
