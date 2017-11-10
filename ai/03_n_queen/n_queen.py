@@ -28,8 +28,8 @@ class QueenBoard():
     d2 = list(zip(range(row + 1, size), range(col - 1, -1, -1)))
     d2 += list(zip(range(row - 1, -1, -1), range(col + 1, size)))
 
-    d1_conflicts = map(lambda xy: self.is_queen_on(*xy), d1)
-    d2_conflicts = map(lambda xy: self.is_queen_on(*xy), d2)
+    d1_conflicts = list(map(lambda xy: self.is_queen_on(*xy), d1))
+    d2_conflicts = list(map(lambda xy: self.is_queen_on(*xy), d2))
 
     count += d1_conflicts.count(True) + d2_conflicts.count(True)
 
@@ -62,6 +62,14 @@ def max_queen(board):
   conflicts = map(lambda q: (q[0], board.conflicts(q[1], q[0])), enumerate(board.queens_))
   return max(conflicts, key=lambda q: q[1])[0]
 
+def min_state(board, queen):
+  queen_states = map(
+    lambda state: (state, board.conflicts(state, queen)),
+    range(len(board.queens_))
+  )
+
+  return min(queen_states, key=lambda q: q[1])[0]
+
 def move_queen_on(board, queen, position):
   next_board = list(board.queens_)
   next_board[queen] = position
@@ -69,19 +77,11 @@ def move_queen_on(board, queen, position):
   return QueenBoard(next_board)
 
 
-# def better_random(state, max_iter):
-#   current_score = state.score()
-#   new_state = state
-#   for i in range(max_iter):
-#     rand_queen = random.choice(range(0, len(state.queens_)))
-#     rand_state = random.choice(range(0, len(state.queens_)))
+def move_random_queen(board):
+  rand_queen = random.choice(range(0, len(board.queens_)))
+  rand_state = random.choice(range(0, len(board.queens_)))
 
-#     new_state = move_queen_on(state, rand_queen, rand_state)
-#     new_score = new_state.score()
-#     if new_score < current_score:
-#       return new_state
-
-#   return new_state
+  return move_queen_on(board, rand_queen, rand_state)
 
 def min_conflicts(start):
   current = start
@@ -91,20 +91,12 @@ def min_conflicts(start):
     ite +=1
     m_queen = max_queen(current)
 
-    m_queen_states = map(
-      lambda r: (r, current.conflicts(r, m_queen)),
-      range(len(current.queens_))
-    )
+    m_queen_min_state = min_state(current, m_queen)
 
-    min_state = min(m_queen_states, key=lambda q: q[1])[0]
-
-    current = move_queen_on(current, m_queen, min_state)
+    current = move_queen_on(current, m_queen, m_queen_min_state)
 
     if last_score <= current.score():
-      rand_queen = random.choice(range(0, len(current.queens_)))
-      rand_state = random.choice(range(0, len(current.queens_)))
-
-      current = move_queen_on(current, rand_queen, rand_state)
+      current = move_random_queen(current)
 
     last_score = current.score()
 
@@ -113,7 +105,6 @@ def min_conflicts(start):
 
 
 def rand_board(size):
-  # board = map(lambda i: random.choice(range(0, size)), range(size))
   board = list(range(0, size))
   return QueenBoard(board)
 
