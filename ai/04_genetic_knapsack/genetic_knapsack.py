@@ -92,16 +92,14 @@ def main(population_size, values, weights, cross_prob, mut_prob, max_iter=1000):
   for i in range(max_iter):
     # evaluate the population
     fitness = [knapsack_fitness(k, capacity, values, weights) for k in population]
-    population_fitness = sum(fitness)
-    # print('avg_fitness', population_fitness / len(population))
 
     max_index = max(enumerate(fitness), key=lambda e_f: e_f[1])[0]
     current_best = population[max_index]
-    current_best_fitnress = fitness[max_index]
+    current_best_fitness = fitness[max_index]
 
-    if best_solution_fitness < current_best_fitnress:
+    if best_solution_fitness < current_best_fitness:
       best_solution = current_best
-      best_solution_fitness = current_best_fitnress
+      best_solution_fitness = current_best_fitness
 
     population = next_population(population, fitness, cross_prob, mut_prob)
 
