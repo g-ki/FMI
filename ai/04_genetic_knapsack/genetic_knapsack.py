@@ -1,81 +1,33 @@
 import random
 
 
-class BooleanChromosome():
-  def __init__(self, chromosome):
-    self._chromosome = chromosome
+def random_chromosome(lenght):
+  return [random.randint(0, 1) for i in range(lenght)]
 
 
-  @classmethod
-  def random(cls, lenght):
-    chromosome = [random.randint(0, 1) for i in range(lenght)]
-    return cls(chromosome)
+def random_population(size, lenght):
+  return [random_chromosome(lenght) for i in range(size)]
 
 
-  def mutate(self, prob):
-    for i,val in enumerate(self._chromosome):
-      if random.random() <= prob:
-        self._chromosome[i] = 1 - val # flip
+def crossover(chromosome_a, chromosome_b):
+  rand_index = random.choice(range(len(chromosome_a)))
+
+  a_left, a_right = chromosome_a[:rand_index], chromosome_a[rand_index:]
+  b_left, b_right = chromosome_b[:rand_index], chromosome_b[rand_index:]
+
+  return (a_left + b_right, b_left + a_right)
 
 
-  def __len__(self):
-    return len(self._chromosome)
+def mutate(chromosome, prob):
+  result = []
+  for val in chromosome:
+    mutated_val = 1 - val if random.random() <= prob else val
+    result.append(mutated_val)
 
-
-  def __str__(self):
-    return str(self._chromosome)
-
-
-  def crossover(self, other):
-    rand_index = random.choice(range(len(self)))
-
-    self_left, self_right = self._chromosome[:rand_index], self._chromosome[:rand_index]
-    other_left, other_right = other._chromosome[:rand_index], other._chromosome[:rand_index]
-
-    self_class = self.__class__
-
-    return (self_class(self_left + other_right), self_class(other_left + self_right))
-
-
-  def __add__(self, other):
-    return self.crossover(other)
-
-  def fitness(self):
-    pass
-
-
-class Knapsack():
-  def __init__(self, capacity, chromosome):
-    self._chromosome = BooleanChromosome(chromosome)
-    self._capacity = capacity
-
-
-  def value(self, values):
-    return sum([x*v for x,v in zip(self._chromosome, values)])
-
-
-  def weight(self, weights):
-    return sum([x*w for x,w in zip(self._chromosome, weights)])
-
-
-  def fitness(self, values, weights):
-    if self.weight(weights) > self._capacity:
-      return 0
-
-    return self.value(values)
-
-
-  @classmethod
-  def random(cls, capacity, lenght):
-    chromosome = [random.randint(0, 1) for i in range(lenght)]
-    return cls(capacity, chromosome)
+  return result
 
 
 def pick_index(array):
-  # array_sum = sum(array)
-  # if array_sum != 1:
-  #   norm_array = [el / array_sum for el in array]
-
   rand_num = random.random()
   index = 0
 
@@ -98,13 +50,13 @@ def next_population(population, fitness, cross_prob, mut_prob):
 
     # crossover
     if random.random() <= cross_prob:
-      offspring_a, offspring_b = parent_a.crossover(parent_b)
+      offspring_a, offspring_b = crossover(parent_a, parent_b)
       parent_a = offspring_a
       parent_b = offspring_b
 
     # mutate
-    parent_a.mutate(mut_prob)
-    parent_b.mutate(mut_prob)
+    parent_a = mutate(parent_a, mut_prob)
+    parent_b = mutate(parent_b, mut_prob)
 
     new_population.append(parent_a)
     new_population.append(parent_b)
@@ -112,32 +64,49 @@ def next_population(population, fitness, cross_prob, mut_prob):
   return new_population
 
 
-def random_population(size, capacity, lenght):
-  return [Knapsack.random(capacity, lenght) for i in range(size)]
+def chromosome_sum(chromosome, values):
+  return sum([x * val for x,val in zip(chromosome, values)])
+
+
+def knapsack_fitness(chromosome, capacity, values, weights):
+  weight = chromosome_sum(chromosome, weights)
+  if weight > capacity:
+    return 0
+
+  return chromosome_sum(chromosome, values)
 
 
 def max_n_indices(array, n):
-  return [i for i,val in sorted(enumerate(array), key=lambda el: el[1])[:n]]
+  sorted_array = sorted(enumerate(array), key=lambda el: el[1], reverse=True)
+  return [i for i,val in sorted_array[:n]]
 
 
 def main(population_size, values, weights, cross_prob, mut_prob, max_iter=1000):
   # init random population
-  population = random_population(population_size, 5000, len(values))
+  capacity = 5000
+  population = random_population(population_size, len(values))
+
+  best_solution = population[0]
+  best_solution_fitness = knapsack_fitness(best_solution, capacity, values, weights)
 
   for i in range(max_iter):
     # evaluate the population
-    fitness = [k.fitness(values, weights) for k in population]
+    fitness = [knapsack_fitness(k, capacity, values, weights) for k in population]
     population_fitness = sum(fitness)
-    print(population_fitness, 'avg_fitness', population_fitness / len(population))
+    # print('avg_fitness', population_fitness / len(population))
 
-    # show the best knapsacks
-    print('top 5 knapsacks')
-    top_indices = max_n_indices(fitness, 5)
-    for index in top_indices:
-      print(population[index], fitness[index])
+    max_index = max(enumerate(fitness), key=lambda e_f: e_f[1])[0]
+    current_best = population[max_index]
+    current_best_fitnress = fitness[max_index]
+
+    if best_solution_fitness < current_best_fitnress:
+      best_solution = current_best
+      best_solution_fitness = current_best_fitnress
 
     population = next_population(population, fitness, cross_prob, mut_prob)
 
+
+  return best_solution
 
 
 if __name__ == '__main__':
@@ -154,7 +123,7 @@ if __name__ == '__main__':
     ('beer',520,10),
     ('suntan cream', 110, 70),
     ('camera',320,30),
-    ('T-shirt',240,150),
+    ('T-shirt',240,15),
     ('trousers',480,10),
     ('umbrella',730,40),
     ('waterproof trousers',420,70),
@@ -167,15 +136,18 @@ if __name__ == '__main__':
     ('notebook',900,1),
     ('tent',2000,150)
   ]
-
   weights = [item[1] for item in items]
   values = [item[2] for item in items]
 
-  main(40, values, weights, cross_prob=0.7, mut_prob=0.001)
+  solution = main(46, values, weights, cross_prob=0.7, mut_prob=0.01, max_iter=100)
 
+  solution_fitness = knapsack_fitness(solution, 5000, values, weights)
+  solution_weight = chromosome_sum(solution, weights)
 
+  for index,item in enumerate(solution):
+    if item == 1:
+      print(index, items[index][0])
 
-
-
-
-
+  print('-----------------')
+  print('weight', solution_weight, solution_weight / 5000)
+  print('value', solution_fitness, solution_fitness / sum(values))
