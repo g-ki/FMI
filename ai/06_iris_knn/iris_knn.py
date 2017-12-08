@@ -57,11 +57,10 @@ if __name__ == '__main__':
   train, test = train_test_split(dataset, test_size=20)
 
   model = knn(train, iris_distance, iris_label)
-
   labels = list(model(test, k=2))
 
   for t,predicted_label in zip(test, labels):
     print('Id:', t['Id'], 'is', predicted_label)
 
-  true_labes = list(map(iris_label, test))
-  print('Accuracy: %f' % score(true_labes, labels))
+  true_labels = list(map(iris_label, test))
+  print('Accuracy: %f' % score(true_labels, labels))
