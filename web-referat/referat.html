@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS: стилове, класове, селектори</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+  <link rel="stylesheet" type="text/css" href="./css/styles.css">
+</head>
+<body>
+  <div class="container-fluid">
+    <button id="content-button" class="content-button">Съдържание</button>
+    <div class="col-md-3 col-sidebar" id="sidebar">
+      <ul class="nav">
+        <li><a href="#page-0">Начало</a></li>
+        <li><a href="#page-1">Cascading Style Sheets</a></li>
+        <li><a href="#page-2">Синтаксис</a></li>
+        <li>
+          <a href="#page-3">Селектори</a>
+          <ul class="nav">
+            <li><a href="#page-3-id">Id selector</a></li>
+            <li><a href="#page-3-class">Клас селектор</a></li>
+            <li><a href="#page-3-child">Наследник</a></li>
+            <li><a href="#page-3-group">Групирaнe</a></li>
+            <li><a href="#page-3-direct-child">Пряк наследник</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="#page-4">Свойства</a>
+          <ul class="nav">
+            <li><a href="#page-4-colors">Цветове</a></li>
+            <li><a href="#page-4-measures">CSS Мерки</a></li>
+            <li><a href="#page-4-text-style">Стилизиране на текст</a></li>
+            <li><a href="#page-4-fonts">Шрифт</a></li>
+          </ul>
+        </li>
+        <li><a href="#resources">Ресурси</a></li>
+      </ul>
+    </div>
+    <div class="col-md-12 col-content">
+
+      <section id="page-0" class="page">
+        <div>
+          <img src="./img/CSS3_logo_and_wordmark.svg">
+          <h1>селектори | стилове | класове </h1>
+          <!-- <h3>от Папи Ханс</h3> -->
+        </div>
+      </section>
+
+      <section id="page-1" class="page">
+        <div class="container">
+          <div class="row">
+            <div class="col-md-10 col-md-offset-1">
+              <h1>Cascading Style Sheets</h1>
+
+              <p>CSS е съкращение на <strong>Cascading Style Sheets</strong>. Това е език даващ ни възможност да стилизираме вида HTML страниците. Ако си представим, че HTML е бетона,с който строим Интернет страници, CSS е тяхната декорацията и дизайн.</p>
+
+              <p>CSS предоставя множество от удобства при изграждането на HTML страници. Най-голямото удобство при използването на CSS e възможността да контролираме много на брой HTML документи, като това става чрез промяна на един единствен файл, без да е нужно да се променя HTML кода на всяка една уеб страница.</p>
+
+              <p>CSS стилизация може да бъде добавена към HTML елементи по три начина:</p>
+              <ul>
+                <li>Директно (inline) - чрез <code>style</code> атрибута на HTML елементите</li>
+                <li>Вътрешно - чрез <code>&lt;style&gt;</code> елемент в <code>&lt;head&gt;</code> секцията</li>
+                <li>Външно - чрез отделен CSS файл</li>
+              </ul>
+
+              <h4>Директно</h4>
+              <pre>&lt;h1 style="color:blue;"&gt;This is a Blue Heading&lt;/h1&gt;</pre>
+
+              <h4>Вътрешно</h4>
+              <pre>...
+&lt;head&gt;
+&lt;style&gt;
+body {background-color: powderblue;}
+h1   {color: blue;}
+p    {color: red;}
+&lt;/style&gt;
+&lt;/head&gt;
+...</pre>
+
+              <h4>Външно</h4>
+              <pre>...
+&lt;head&gt;
+  &lt;link rel="stylesheet" href="styles.css"&gt;
+&lt;/head&gt;
+...</pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-2" class="page">
+        <div class="container">
+          <div class="row">
+            <div class="col-md-10 col-md-offset-1">
+              <h1>CSS синтаксис</h1>
+              <p>Едно CSS правило се състои от селектор и декларационен блок.</p>
+              <img class="img-responsive" src="./img/selector.gif">
+              <p>Селекторът сочи към HTML елемент, който желаем да стилизираме. По-нататък ще разгледаме какви типове селектори съществуват в езика. Декларационният блок е заграден с къдрави скобки и съдържа една или повече декларации разделени с точка и запетая, тук става магията на стилизирането. Всяка декларация в блока се състои от CSS свойство и стойност, разделени със две точки.</p>
+
+              <p>В този пример текста във всички елементи <code>p</code> ще бъде центриран и оцветен в червено:</p>
+              <script async src="https://jsfiddle.net/czxx1hw2/1/embed/css,html,result/"></script>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-3" class="page">
+        <div class="container">
+          <div class="row">
+            <div class="col-md-10 col-md-offset-1">
+              <h1>Основни CSS селектори</h1>
+              <p>CSS селекторите служат за намирате/слектиране на HTML елементи на база тяхното име, id, клас, атрибут и още. В горния пример видяхме как да селектираме елемент използвайки неговото име.</p>
+
+              <h3 id="page-3-id">Id селектор</h3>
+              <p>Този селектор използва id атрибута на HTML елементите за да ги намери. id атрибута не трябва да се използва повече от веднъж в рамките на една уеб страница, така селекторът се използва за намирането на уникални елементи! За да селектираме елемент с дадено id пишем диез (#) последван от id-то на елемента.</p>
+              <script async src="https://jsfiddle.net/f25qjkkx/embed/css,html,result/"></script>
+
+              <h3 id="page-3-class">Клас селектор</h3>
+              <p>Клас селекторът намира елементи по тeхния <code>class</code> атрибут. За да селектираме елементи с даден class пишем точка (.) последванa от името на класа.</p>
+              <script async src="https://jsfiddle.net/Ld07qc7t/embed/css,html,result/"></script>
+
+              <p>Може да ограничим действието на клас стилизацията като посочим и име на елемент. Така класът ще важи само за определения тип елемент.</p>
+              <script async src="https://jsfiddle.net/Ld07qc7t/1/embed/css,html,result/"></script>
+
+              <h3 id="page-3-child">Наследник</h3>
+              <p>Селектрирането на наследник става чрез посочване на два селектора разделени с интервал. Първият селектор намира родителя, а вторият негов наследник.</p>
+              <script async src="https://jsfiddle.net/Ld07qc7t/2/embed/css,html,result/"></script>
+
+              <h3 id="page-3-group">Групиране</h3>
+              <p>Можем да използваме един блок за няколко селектора. Това помага да намалим обема на код.</p>
+              <pre>h1 {
+  text-align: center;
+  color: red;
+}
+
+h2 {
+  text-align: center;
+  color: red;
+}
+
+p {
+  text-align: center;
+  color: red;
+}</pre>
+            <p>се свежда до</p>
+<pre>h1, h2, p {
+  text-align: center;
+  color: red;
+}</pre>
+              <h3 id="page-3-direct-child">Пряк наследник</h3>
+              <p>С този тип селектор можем да намерим елемент пряк наследник на родителя си или по-просто казано елемент намиращ се директно под родителя си. За да го използваме трябва да добавим символа &lt; между два селектора.</p>
+              <script async src="https://jsfiddle.net/Ld07qc7t/3/embed/css,html,result/"></script>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-4" class="page">
+        <div class="container">
+          <div class="row">
+            <div class="col-md-10 col-md-offset-1">
+              <h1>Свойства</h1>
+              <p>Свойствата в CSS могат да се разделят на основни два типа.</p>
+              <ul>
+                <li>Layout свойства - свързани с позицията и размера на елементите</li>
+                <li>Decoration свойства - свързани с външния вид фон, шрифт, цветове и ефекти</li>
+              </ul>
+
+              <h3 id="page-4-colors">Цветове</h3>
+              <p>Цветовете са важна част от стилизацията на уеб страници. В CSS има четири стандартни начина за представяне на цветове:</p>
+              <ul>
+                <li>Име: red</li>
+                <li>RGB: rgb(255, 0, 0)</li>
+                <li>HEX: #ff0000</li>
+                <li>HSL: hsl(0, 100%, 50%)</li>
+              </ul>
+              <p>Всички модерни браузъри поддържат 140 имена на цветове (Aqua, Blue, Red, Coral, Gold...). Те рядко се ползват тъй като ни ограничават с малкия си брой и могат да се различавам между различните браузъри.</p>
+              <p>RGB (Red Green Blue) задава стойности на всеки от трите цвята от 0 до 255 в десетичен вид.</p>
+
+              <p>HEX е просто по-кратка версия за писане, като се пише '#' и после от 00 до FF за всеки от трите цвята. HEX има и съкратен вариант, където се пише само по 1 шестнайсетична цифра за всеки цвят, и за стойност се взима 17 пъти по-голяма стойност (все едно е била написана 2 пъти). Тоест #c93 = #cc9933, което го прави най-минималистичен и бърз за писане вариант. Както и във истинския свят цветовете са като светлина - тоест по-големите стойности са по-светлите (#fff = white, #000 = black).</p>
+
+              <!-- <img class="img-responsive" src="http://iliasky.com/www/kn14/images/colors.png"> -->
+              <h3 id="page-4-measures">CSS Метрки</h3>
+              <ul>
+                <li>Pixels (px): px са фиксирана мерна единица. Всеки екран има точно определен брой пиксели на дадена резолюция.</li>
+                <li>Points (pt): pt е мерна единица обикновено използвана при неща за принтиране - тя се използва например за размер на шрифта в word.</li>
+                <li>“Ems” (em): em e мерна единица с променлив размер. 1em = конкретния размер на шрифта за дадения елемент. Използването и дава възможност за лесно оразмеряване на целия layout с лекота като просто се смени размера на шрифта. Така лесно се постигат добри резултати за мобилни устройства, както и за по-големи екрани.</li>
+                <li>Percent (%): % има различен смисъл за различен контекст. Когато се задава размер на шрифта тя е подобна на em - 100% = 1em = конкретния размер на шрифта. В останалите случаи 100% се пада съответния размер на даден родител, когато размер с проценти въобще е валиден.</li>
+              </ul>
+
+              <h3 id="page-4-text-style">Стилизиране на текст</h3>
+              <h4>Color</h4>
+              <script async src="https://jsfiddle.net/Ld07qc7t/4/embed/css,html,result/"></script>
+
+              <p>Цветът по подразбиране за страницата се задава с <code>body</code> селекторът.</p>
+              <h4>Text Alignment</h4>
+              <p>Свойството <code>text-align</code> се използва за хоризонтално подравняване на текст. Текстът може да бъде подравнен наляво, надясно, центрирано и оправдано (justified).</p>
+              <script async src="https://jsfiddle.net/ystau62h/embed/css,html,result/"></script>
+
+              <h4>Text decoration</h4>
+
+              <p>Свойството <code>text-decoration</code> се използва за задаване или премахване на текстови декорации. Възможните стойности, които може да приема са <code>none</code> <code>underline</code> <code>overline</code> <code>line-through</code>.</p>
+
+              <p>Стойността <code>text-decoration: none;</code> често се използва за премахване на подчертавките от линковете:</p>
+              <script async src="https://jsfiddle.net/Ld07qc7t/5/embed/css,html,result/"></script>
+
+              <h4>И още много...</h4>
+              <h3 id="page-4-fonts">Шрифт</h3>
+              <p>В тази секция на реферата ще разгледаме CSS свойства свързани с шрифта, дебелината, размера и стила на текста.</p>
+              <ul>
+                <li>
+                  <code>font-style</code></li>
+                  <li><code>font-weight</code></li>
+                  <li><code>font-size</code></li>
+                  <li><code>line-height</code></li>
+                  <li><code>font-family</code></li>
+                  <li><code>font</code></li>
+                </ul>
+
+              <h4>CSS Font Family</h4>
+              <p>В CSS има два типа имана на font families:</p>
+              <ul>
+                <li><strong>generic family</strong> - множество от семейства изглеждащи подобно ('Serif' или 'Moospace')</li>
+                <li><strong>font family</strong> - конкретно семейство ('Times New Roman' или 'Arial')</li>
+              </ul>
+
+              <table class="table table-striped table-bordered">
+                  <tbody>
+                      <tr>
+                          <th style="width:20%">Generic family</th>
+                          <th style="width:30%">Font family</th>
+                          <th>Описание</th>
+                      </tr>
+                      <tr>
+                          <td>Serif</td>
+                          <td><span style="font-size:150%;font-family:Times New Roman">Times New Roman</span>
+                              <br>
+                              <span style="font-size:150%;font-family:Georgia">Georgia</span></td>
+                          <td>Serif шрифтове имат малки чертички в краищата на някои букви</td>
+                      </tr>
+                      <tr>
+                          <td>Sans-serif</td>
+                          <td><span style="font-size:150%;font-family:Arial">Arial</span>
+                              <br>
+                              <span style="font-size:150%;font-family:Verdana">Verdana</span></td>
+                          <td>"Sans" означава без - това са шрифтове без чертички в края на символите</td>
+                      </tr>
+                      <tr>
+                          <td>Monospace</td>
+                          <td><span style="font-size:150%;font-family:Courier New">Courier New</span>
+                              <br>
+                              <span style="font-size:150%;font-family:Lucida Console">Lucida Console</span></td>
+                          <td>Всички monospace символи имат еднаква ширина</td>
+                      </tr>
+                  </tbody>
+              </table>
+
+              <p><code>font-family</code> трябва да съдържа няколко шрифта като "fallback" система. Ако браузърът не поддържа първия шрифт ще пробва следващия, това ще продължи докато не стигне до шрифт който поддържа.</p>
+
+              <pre>p {
+  font-family: "Times New Roman", Times, serif;
+}</pre>
+              <h4>Font Style</h4>
+
+              <p>Свойството <code>font-style</code> се използва за оказване на италик текст. font-style приема три стойности:</p>
+              <ul>
+                <li>normal - текста се показа нормално</li>
+                <li>italic - текста се показва в италик стил</li>
+                <li>oblique - текста се накланя прилича </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-5" class="page">
+        <div class="container">
+          <div class="row">
+            <div class="col-md-10 col-md-offset-1">
+              <h1>Списъци</h1>
+
+              <p>В HTML има два типа списъци:</p>
+              <ul>
+                <li>ненареден списък (&lt;ul&gt;) - елементие се маркират с булети</li>
+                <li>нареден списък (&lt;ol&gt;) - елементите са номерирани с числа</li>
+              </ul>
+
+              <p>CSS позволява да променяме и стилизираме:</p>
+              <ul>
+                <li>Начина на маркиране на наредените списъци</li>
+                <li>Начина на маркиране на ненаредените списъци</li>
+                <li>Фоновия цвят на списъците и фоновия цвят на елементите</li>
+              </ul>
+
+              <h4>Маркери</h4>
+              <p>Свойството <code>list-style-type</code> определя типа маркер на списъка.</p>
+
+              <p>Ето и пример:</p>
+              <script async src="https://jsfiddle.net/mk319nbm/embed/css,html,result/"></script>
+
+              <h4>Позициониране на маркери</h4>
+
+              <p><code>list-style-position</code> определя дали маркерите да са вътре или извън съдържанието.</p>
+              <script async src="https://jsfiddle.net/mk319nbm/1/embed/css,html,result/"></script>
+
+              <h4>Оцветяване на списъци</h4>
+              <p>Можем да оцветяваме списъците за да ги направим по-интересни.</p>
+              <p>Всичко добавено към &lt;ul&gt; или &lt;ol&gt; оказва ефект върху целия списък, а свойствата добавени към &lt;li&gt; се отнасят само за индивидуалните елементи.</p>
+              <script async src="https://jsfiddle.net/mk319nbm/2/embed/css,html,result/"></script>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="resources" class="page">
+        <div class="container">
+          <div class="row">
+            <div class="col-md-10 col-md-offset-1">
+              <h1>Ресурси</h1>
+              <ul>
+                <li><a href="https://www.w3schools.com/cssref/css_selectors.asp">https://www.w3schools.com/cssref/css_selectors.asp</a></li>
+                <li><a href="https://www.w3schools.com/css/css_syntax.asp">https://www.w3schools.com/css/css_syntax.asp</a></li>
+                <li><a href="https://www.w3schools.com/css/css_text.asp">https://www.w3schools.com/css/css_text.asp</a></li>
+                <li><a href="https://www.w3schools.com/css/css_font.asp">https://www.w3schools.com/css/css_font.asp</a></li>
+                <li><a href="https://www.w3schools.com/css/css_list.asp">https://www.w3schools.com/css/css_list.asp</a></li>
+                <li><a href="http://iliasky.com/www/kn14/05-html-css-1.html">http://iliasky.com/www/kn14/05-html-css-1.html</a></li>
+                <li><a href="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/CSS3_logo_and_wordmark.svg/726px-CSS3_logo_and_wordmark.svg.png">https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/CSS3_logo_and_wordmark.svg/726px-CSS3_logo_and_wordmark.svg.png</a></li>
+                <li><a href="https://www.w3schools.com/css/selector.gif">https://www.w3schools.com/css/selector.gif</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script src="./js/main.js"></script>
+</body>
+</html>
